@@ -5,17 +5,27 @@
 #include "i2c_slave.h"
 #include "module_available.h"
 
+#include "DHT11.h"
+
+#define MODULE_TYPE MODULE_TYPE_DHT11_H
+#define MODULE_ID MODULE_ADDRESS_NOT_CONFIGURED
+
 ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
+
+TIM_HandleTypeDef htim1;
 
 uint8_t  module_slave_address = MODULE_ADDRESS_NOT_CONFIGURED;
 uint32_t global_adc_readout = 0;
 uint64_t global_counter = 0;
 
+DHT11_data dht11_data;
+
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM1_Init(void);
 
 void flash_slave_address(uint8_t address);
 
@@ -25,6 +35,7 @@ int main(void)
 	SystemClock_Config();
 	MX_GPIO_Init();
 	MX_ADC1_Init();
+	MX_TIM1_Init();
 
 	HAL_Delay(1000);
 
@@ -43,8 +54,8 @@ int main(void)
 	if (HAL_I2C_EnableListen_IT(&hi2c1) != HAL_OK) Error_Handler();
 
 	set_sensor_config_sequentialRead(true);
-	set_sensor_type(MODULE_TYPE_NOT_CONFIGURED);
-	set_sensor_id(MODULE_ID_NOT_CONFIGURED);
+	set_sensor_type(MODULE_TYPE);
+	set_sensor_id(MODULE_ID);
 
 	while (! false)
 	{
@@ -156,13 +167,21 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   HAL_GPIO_WritePin(GPIOA, LED_STATUS_Pin|LED_FAULT_Pin|LED_OK_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(DHT11_Data_GPIO_Port, DHT11_Data_Pin, GPIO_PIN_RESET);
 
-  GPIO_InitStruct.Pin = LED_STATUS_Pin|LED_FAULT_Pin|LED_OK_Pin;
+  GPIO_InitStruct.Pin = LED_STATUS_Pin|LED_FAULT_Pin|LED_OK_Pin|DHT11_Data_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
+
+void microsecond_delay(uint16_t duration)
+{
+	__HAL_TIM_SET_COUNTER(&htim1, 0);                 // set the counter value to 0
+	while (__HAL_TIM_GET_COUNTER(&htim1) < duration); // wait for the counter to reach the us input in the parameter
+}
+
 
 void Error_Handler(void)
 {

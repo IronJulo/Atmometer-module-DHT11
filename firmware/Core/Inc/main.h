@@ -18,8 +18,10 @@ void Error_Handler(void);
 #define LED_OK_Pin GPIO_PIN_7
 #define LED_OK_GPIO_Port GPIOA
 
-#define SENSOR_TYPE 0xFFFF
-#define SENSOR_ID 0xFFFFFFFF
+#define DHT11_Data_Pin GPIO_PIN_1
+#define DHT11_Data_GPIO_Port GPIOA
+
+void microsecond_delay(uint16_t duration);
 
 #ifdef __cplusplus
 }
