@@ -21,6 +21,9 @@ void Error_Handler(void);
 #define DHT11_Data_Pin GPIO_PIN_1
 #define DHT11_Data_GPIO_Port GPIOA
 
+#define TIM1_PRESCALER 12
+#define TIM1_ARR 65535
+
 void microsecond_delay(uint16_t duration);
 
 #ifdef __cplusplus
