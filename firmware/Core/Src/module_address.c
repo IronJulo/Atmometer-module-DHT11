@@ -1,0 +1,65 @@
+/*
+ * module_address.c
+ *
+ *  Created on: Jun 22, 2024
+ *      Author: jules
+ */
+
+#include "module_address.h"
+
+
+#define RETURN_IF_VALUE_BETWEEN(compared_val, min_val, max_val, return_val)		\
+	if (compared_val >= min_val && compared_val < max_val) return return_val;	\
+
+
+uint8_t adc_value_to_address(uint32_t adc_value)
+{
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_0_ADDRESS_ADC_MIN, SOCKET_0_ADDRESS_ADC_MAX, SOCKET_0_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_1_ADDRESS_ADC_MIN, SOCKET_1_ADDRESS_ADC_MAX, SOCKET_1_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_2_ADDRESS_ADC_MIN, SOCKET_2_ADDRESS_ADC_MAX, SOCKET_2_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_3_ADDRESS_ADC_MIN, SOCKET_3_ADDRESS_ADC_MAX, SOCKET_3_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_4_ADDRESS_ADC_MIN, SOCKET_4_ADDRESS_ADC_MAX, SOCKET_4_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_5_ADDRESS_ADC_MIN, SOCKET_5_ADDRESS_ADC_MAX, SOCKET_5_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_6_ADDRESS_ADC_MIN, SOCKET_6_ADDRESS_ADC_MAX, SOCKET_6_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_7_ADDRESS_ADC_MIN, SOCKET_7_ADDRESS_ADC_MAX, SOCKET_7_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_8_ADDRESS_ADC_MIN, SOCKET_8_ADDRESS_ADC_MAX, SOCKET_8_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_9_ADDRESS_ADC_MIN, SOCKET_9_ADDRESS_ADC_MAX, SOCKET_9_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_10_ADDRESS_ADC_MIN, SOCKET_10_ADDRESS_ADC_MAX, SOCKET_10_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_11_ADDRESS_ADC_MIN, SOCKET_11_ADDRESS_ADC_MAX, SOCKET_11_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_12_ADDRESS_ADC_MIN, SOCKET_12_ADDRESS_ADC_MAX, SOCKET_12_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_13_ADDRESS_ADC_MIN, SOCKET_13_ADDRESS_ADC_MAX, SOCKET_13_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_14_ADDRESS_ADC_MIN, SOCKET_14_ADDRESS_ADC_MAX, SOCKET_14_ADDRESS);
+	RETURN_IF_VALUE_BETWEEN(adc_value, SOCKET_15_ADDRESS_ADC_MIN, SOCKET_15_ADDRESS_ADC_MAX, SOCKET_15_ADDRESS);
+
+	return SOCKET_15_ADDRESS;
+}
+
+
+uint8_t get_device_address(ADC_HandleTypeDef *adc_handle)
+{
+	return adc_value_to_address(get_socket_adc_value(adc_handle));
+}
+
+uint8_t get_device_address_stable(ADC_HandleTypeDef *adc_handle)
+{
+	uint32_t accumulate = 0;
+
+	for (uint8_t i = 0; i < DEVICE_ADDRESS_MEASURE_COUNT; ++i) {
+		accumulate += get_device_address(adc_handle);
+		HAL_Delay(50);
+	}
+
+	return accumulate / DEVICE_ADDRESS_MEASURE_COUNT;
+}
+
+
+uint32_t get_socket_adc_value(ADC_HandleTypeDef *adc_handle)
+{
+	HAL_ADC_Start(adc_handle);
+	HAL_ADC_PollForConversion(adc_handle, 200);
+	uint32_t adc_val = HAL_ADC_GetValue(adc_handle);
+	HAL_ADC_Stop(adc_handle);
+
+	return adc_val;
+}
+

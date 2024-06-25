@@ -1,0 +1,3 @@
+[submodule "firmware/ModuleConfig"]
+	path = firmware/ModuleConfig
+	url = git@github.com:IronJulo/Atmometer-module-config.git

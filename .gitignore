@@ -1,0 +1,4 @@
+firmware/Debug/*
+firmware/S.launch
+
+*.launch
