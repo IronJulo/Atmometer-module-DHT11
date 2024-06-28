@@ -63,6 +63,11 @@ typedef enum
 	SENSOR_ERROR_MSB,
 	SENSOR_ERROR_LSB,
 
+	SENSOR_VALUE_2_MSB1,
+	SENSOR_VALUE_2_MSB2,
+	SENSOR_VALUE_2_LSB1,
+	SENSOR_VALUE_2_LSB2,
+
     // Read/Write
 	SENSOR_CONFIG = 0X81,
 	SENSOR_UPDATE_PERIOD,
@@ -101,6 +106,7 @@ void set_sensor_config_sequentialRead(bool value);
 void set_sensor_updatePeriod(uint8_t value);
 void set_sensor_error(uint16_t value);
 void set_sensor_value_1(uint32_t value);
+void set_sensor_value_2(uint32_t value);
 void set_sensor_read_address(uint8_t value);
 
 uint16_t get_sensor_type();

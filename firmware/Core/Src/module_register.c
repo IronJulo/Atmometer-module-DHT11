@@ -107,6 +107,14 @@ void set_sensor_value_1(uint32_t value)
 	module_registers[SENSOR_VALUE_1_LSB2] = ((value & 0x000000ff) >>  0);
 }
 
+void set_sensor_value_2(uint32_t value)
+{
+	module_registers[SENSOR_VALUE_2_MSB1] = ((value & 0xff000000) >> 24);
+	module_registers[SENSOR_VALUE_2_MSB2] = ((value & 0x00ff0000) >> 16);
+	module_registers[SENSOR_VALUE_2_LSB1] = ((value & 0x0000ff00) >>  8);
+	module_registers[SENSOR_VALUE_2_LSB2] = ((value & 0x000000ff) >>  0);
+}
+
 void set_sensor_read_address(uint8_t value)
 {
 	module_registers[SENSOR_READ_ADDRESS] = value;

@@ -12,13 +12,10 @@
 
 ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
-
 TIM_HandleTypeDef htim1;
 
 uint8_t  module_slave_address = MODULE_ADDRESS_NOT_CONFIGURED;
-uint32_t global_adc_readout = 0;
 uint64_t global_counter = 0;
-
 DHT11_data dht11_data;
 
 void SystemClock_Config(void);
@@ -45,8 +42,6 @@ int main(void)
 
 	module_slave_address <<= 1; // Allow space for read/write bit
 
-	HAL_Delay(1000);
-
 	MX_I2C1_Init();
 
 	HAL_Delay(1000);
@@ -64,14 +59,25 @@ int main(void)
 	while (! false)
 	{
 		global_counter++;
-		set_sensor_value_1(global_counter);
+
 		DHT_GetData(&dht11_data);
+
+		uint32_t temperature = (dht11_data.temperature * 1000);
+
+		if (dht11_data.temperature < 0)
+			temperature &= 0xFFFFFFFE;
+		else
+			temperature |= 0x00000001;
+
+		set_sensor_value_1(temperature);
+
+		uint32_t humidity = (dht11_data.humidity * 1000);
+		set_sensor_value_2(humidity);
+
 
 		HAL_Delay(1000);
 	}
 }
-
-
 
 void flash_slave_address(uint8_t address)
 {
@@ -89,7 +95,6 @@ void flash_slave_address(uint8_t address)
 
 	HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, GPIO_PIN_RESET);
 }
-
 
 void SystemClock_Config(void)
 {
@@ -183,9 +188,17 @@ static void MX_GPIO_Init(void)
 
 static void MX_TIM1_Init(void)
 {
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = TIM1_PRESCALER;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -193,18 +206,25 @@ static void MX_TIM1_Init(void)
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-
-  if (HAL_TIM_Base_Init(&htim1) != HAL_OK) Error_Handler();
-
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-
-  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK) Error_Handler();
-
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
 
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK) Error_Handler();
+  /* USER CODE END TIM1_Init 2 */
 
 }
 
@@ -213,7 +233,6 @@ void microsecond_delay(uint16_t duration)
 	__HAL_TIM_SET_COUNTER(&htim1, 0);                 // set the counter value to 0
 	while (__HAL_TIM_GET_COUNTER(&htim1) < duration); // wait for the counter to reach the us input in the parameter
 }
-
 
 void Error_Handler(void)
 {

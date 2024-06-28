@@ -53,8 +53,8 @@ uint8_t DHT11_Check_Response(DHT11_data *data)
 		else Response = -1;
 	}
 	uint8_t counter = 0;
-	while ((HAL_GPIO_ReadPin (data->GPIO_Port, data->GPIO_Pin)) && counter < PIN_WAIT_TIMEOUT);   // wait for the pin to go low
-
+	while ((HAL_GPIO_ReadPin (data->GPIO_Port, data->GPIO_Pin)) && counter < PIN_WAIT_TIMEOUT)   // wait for the pin to go low
+		counter++;
 	return Response;
 }
 
