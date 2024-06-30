@@ -8,7 +8,7 @@
 #include "DHT11.h"
 
 #define MODULE_TYPE MODULE_TYPE_DHT11_H
-#define MODULE_ID MODULE_ADDRESS_NOT_CONFIGURED
+#define MODULE_ID 0x01
 
 ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
@@ -25,6 +25,7 @@ static void MX_I2C1_Init(void);
 static void MX_TIM1_Init(void);
 
 void flash_slave_address(uint8_t address);
+void flash_module_booting(uint32_t duration);
 
 int main(void)
 {
@@ -52,6 +53,8 @@ int main(void)
 	set_sensor_config_sequentialRead(true);
 	set_sensor_type(MODULE_TYPE);
 	set_sensor_id(MODULE_ID);
+
+	flash_module_booting(5);
 
 	dht11_data.GPIO_Pin = DHT11_Data_Pin;
 	dht11_data.GPIO_Port = DHT11_Data_GPIO_Port;
@@ -233,6 +236,56 @@ void microsecond_delay(uint16_t duration)
 	__HAL_TIM_SET_COUNTER(&htim1, 0);                 // set the counter value to 0
 	while (__HAL_TIM_GET_COUNTER(&htim1) < duration); // wait for the counter to reach the us input in the parameter
 }
+
+void flash_module_booting(uint32_t duration)
+{
+	uint32_t i = 0;
+	uint8_t odd = 0;
+	uint64_t real_duration = duration * 4;
+
+	HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin, GPIO_PIN_RESET);
+
+	while (i < real_duration)
+	{
+		if((odd % 2) == 0)
+		{
+			HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, GPIO_PIN_SET);
+			HAL_Delay(250);
+			i++;
+			if (i >= real_duration) break;
+			HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_SET);
+			HAL_Delay(250);
+			i++;
+			if (i >= real_duration) break;
+			HAL_GPIO_WritePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin, GPIO_PIN_SET);
+			HAL_Delay(250);
+			i++;
+			if (i >= real_duration) break;
+		} else
+		{
+			HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, GPIO_PIN_RESET);
+			HAL_Delay(250);
+			i++;
+			if (i >= real_duration) break;
+			HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_RESET);
+			HAL_Delay(250);
+			i++;
+			if (i >= real_duration) break;
+			HAL_GPIO_WritePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin, GPIO_PIN_RESET);
+			HAL_Delay(250);
+			i++;
+			if (i >= real_duration) break;
+		}
+		odd++;
+	}
+
+	HAL_GPIO_WritePin(LED_OK_GPIO_Port, LED_OK_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_FAULT_GPIO_Port, LED_FAULT_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin, GPIO_PIN_RESET);
+}
+
 
 void Error_Handler(void)
 {
