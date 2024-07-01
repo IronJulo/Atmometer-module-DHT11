@@ -4,6 +4,7 @@
 #include "module_address.h"
 #include "i2c_slave.h"
 #include "module_available.h"
+#include "module_status.h"
 
 #include "DHT11.h"
 
@@ -14,7 +15,7 @@ ADC_HandleTypeDef hadc1;
 I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim1;
 
-uint8_t  module_slave_address = MODULE_ADDRESS_NOT_CONFIGURED;
+uint8_t module_slave_address = MODULE_ADDRESS_NOT_CONFIGURED;
 uint64_t global_counter = 0;
 DHT11_data dht11_data;
 
@@ -43,6 +44,11 @@ int main(void)
 
 	module_slave_address <<= 1; // Allow space for read/write bit
 
+	set_sensor_config_sequentialRead(true);
+	set_sensor_type(MODULE_TYPE);
+	set_sensor_id(MODULE_ID);
+	set_sensor_error(MODULE_STATUS_BOOTING);
+
 	MX_I2C1_Init();
 
 	HAL_Delay(1000);
@@ -50,14 +56,12 @@ int main(void)
 	if (HAL_TIM_Base_Start(&htim1) != HAL_OK)      Error_Handler();
 	if (HAL_I2C_EnableListen_IT(&hi2c1) != HAL_OK) Error_Handler();
 
-	set_sensor_config_sequentialRead(true);
-	set_sensor_type(MODULE_TYPE);
-	set_sensor_id(MODULE_ID);
-
 	flash_module_booting(5);
 
 	dht11_data.GPIO_Pin = DHT11_Data_Pin;
 	dht11_data.GPIO_Port = DHT11_Data_GPIO_Port;
+
+	set_sensor_error(MODULE_STATUS_OK);
 
 	while (! false)
 	{
@@ -65,7 +69,7 @@ int main(void)
 
 		DHT_GetData(&dht11_data);
 
-		uint32_t temperature = (dht11_data.temperature * 1000);
+		uint32_t temperature = (abs(dht11_data.temperature) * 1000);
 
 		if (dht11_data.temperature < 0)
 			temperature &= 0xFFFFFFFE;
@@ -75,6 +79,7 @@ int main(void)
 		set_sensor_value_1(temperature);
 
 		uint32_t humidity = (dht11_data.humidity * 1000);
+
 		set_sensor_value_2(humidity);
 
 
